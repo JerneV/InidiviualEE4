@@ -39,7 +39,7 @@ static unsigned char timed_to_1ms(void);
  ********************************************************************/
 void main(void) {
 	init();						//initialize the system
-    startADC();
+    startADC();                 // Initialize ADC
 	while(timed_to_1ms()) {
         //**** put here a reference to one or more FSM's
         fsm_io();
