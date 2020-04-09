@@ -39,11 +39,13 @@ static unsigned char timed_to_1ms(void);
  ********************************************************************/
 void main(void) {
 	init();						//initialize the system
+    ADC_init();
     //startADC();               // Initialize ADC
 	while(timed_to_1ms()) {
         //**** put here a reference to one or more FSM's
         fsm_io();
         startADC();
+        ADC_ISR();
         fsm_game();
         
 	}
@@ -69,7 +71,7 @@ static void init(void) {
     OSCCONbits.IRCF = 0b111;    // put internal clock in 7th gear
     
 	// Configure I/O as input (1) or output (0)
-    TRISAbits.TRISA0 = 0;       // RA0 first analog input or digital IO
+    TRISAbits.TRISA0 = 1;       // RA0 first analog input or digital IO
     ANSELAbits.ANSA0 = 0;       // When input, set RA0 as analog or digital
     TRISAbits.TRISA1 = 0;       // RA1 second analog input or digital IO
     ANSELAbits.ANSA1 = 0;       // When input, set RA1 as analog or digital

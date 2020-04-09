@@ -51,13 +51,14 @@ void fsm_game_init(void) {
  * Overview:        An implementation for a simple reaction game
  ********************************************************************/
 void fsm_game(void) {
+    //startADC();
     switch (current_state) { 
         case LED_OFF :
         // *** outputs ***
             LATB = 0x00;
                         
-            //if (PRG_BUTTON == PUSHED){
-            if(ADC_value[0] > 50){
+            if (PRG_BUTTON == PUSHED){
+            //if(ADC_value[0] == 550){
                 current_state = LED_UP;
                 LATB = 0x01;
                 
@@ -88,7 +89,7 @@ void fsm_game(void) {
                 downTimer = 0;
             }else if(downCount >= 7){
                 downCount = 0;
-                current_state = LED_UP;
+                current_state = LED_OFF;
                 downTimer = 0;
             }           
              
