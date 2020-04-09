@@ -16,12 +16,20 @@
 #define PUSHED 0
 
 /** P R I V A T E   V A R I A B L E S *******************************/
-static enum {LED_OFF, LED_EVEN, LED_ODD
+static enum {LED_OFF, LED_UP, LED_DOWN
             } current_state;
             
 unsigned int timer = 0;
 
-unsigned int ADC_READ = 0;
+//unsigned int ADC_READ = ADC_value[0];
+
+unsigned int nightRider = 50;
+
+unsigned char upCount = 0;
+unsigned char downCount = 0;
+
+unsigned int upTimer = 0;
+unsigned int downTimer = 0;
             
 /********************************************************************
  * Function:        void fsm_game_init(void)
@@ -43,49 +51,57 @@ void fsm_game_init(void) {
  * Overview:        An implementation for a simple reaction game
  ********************************************************************/
 void fsm_game(void) {
-    //For now we'll just read it each time.
-    
-    
     switch (current_state) { 
         case LED_OFF :
         // *** outputs ***
-            LATB = 0;
+            LATB = 0x00;
                         
             //if (PRG_BUTTON == PUSHED){
-            if(ADC_value[0] > 400){
-                current_state = LED_EVEN;
+            if(ADC_value[0] > 50){
+                current_state = LED_UP;
+                LATB = 0x01;
                 
             }
             break;
             
-        case LED_EVEN :
-            if(timer <= 1000){
-                timer +=1;
-                LATB = 85;
-
+        case LED_UP :
+            if(upTimer >= nightRider){
+                if(upCount < 7){
+                    upCount +=1;
+                    LATB = LATB << 1;
+                    upTimer = 0;
+                }else if(upCount >= 7){
+                    upCount = 0;
+                    current_state = LED_DOWN;
+                    upTimer = 0;
+                }
             }else{
-                current_state = LED_ODD;
-                timer = 0;
+                upTimer += 1;
             }
-                
-            
             break;
             
-        case LED_ODD:
-            if(timer <= 1000){
-                timer += 1;
-                LATB = 170;
+        case LED_DOWN:
+            if(downTimer >= nightRider){
+               if(downCount < 7){
+                downCount +=1;
+                LATB = LATB >> 1;
+                downTimer = 0;
+            }else if(downCount >= 7){
+                downCount = 0;
+                current_state = LED_UP;
+                downTimer = 0;
+            }           
+             
             }else{
-                current_state = LED_EVEN;
-                timer = 0;
+                downTimer += 1;
             }
-            
-            
             break;
-
-        default:
+            
+        default: 
             current_state = LED_OFF;
             break;
+            
+
     }
     
 }
