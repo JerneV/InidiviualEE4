@@ -11,6 +11,7 @@
 /** I N C L U D E S *************************************************/
 #include "config.h"
 #include <stdlib.h>
+#include <math.h>
 
 /** D E F I N E S ***************************************************/
 #define PUSHED 0
@@ -20,9 +21,11 @@ static enum {
     IDLE, SHOW, EXIT
 } current_state;
 
+// Used for the EVEN/UNEVEN LEDs
 unsigned int timer = 0;
 unsigned int counter = 0;
 
+// All variables for the NIGHRIDER sequence
 unsigned int nightRider = 50;
 unsigned char upCount = 0;
 unsigned char downCount = 0;
@@ -30,9 +33,12 @@ unsigned int upTimer = 0;
 unsigned int downTimer = 0;
 unsigned char nCount = 0;
 
-unsigned int ldr_1;
+// Varuables used for logic
+unsigned int resistor;
+unsigned char count = 0;
 
-// Boolean! 
+
+// Boolean! For nightrider 
 unsigned char isUp = 1;
 
 //unsigned int rValues[8] = {0x7A, 0xC0, 0x83,0xE8, 0xFA, 0xFE, 0xE5, 0xEB};
@@ -50,15 +56,6 @@ void fsm_game_init(void) {
     current_state = IDLE;
 }
 
-/********************************************************************
- * Function:        void fsm_game(void)
- * PreCondition:    None
- * Input:           None
- * Output:          None
- * Overview:        An implementation for a simple reaction game
- ********************************************************************/
-
-unsigned char count = 0;
 
 void fsm_game(void) {
     switch (current_state) {
@@ -83,17 +80,26 @@ void fsm_game(void) {
             break;
 
         case(SHOW):
-            //DO game LOGIc
+            // For now: just show the first value in the array
             LATB = rValues[count];
             
-            ldr_1 = ADC_value[count];
+            // Read the next value of the ADC
+            resistor = ADC_value[0];
             startADC();
-
-            if ( rValues[count] - 20 <= ldr_1 <= rValues[count] + 20){
+            
+            unsigned int error = floor(resistor * 0.10);
+            unsigned int expected = rValues[count];
+            
+            // we want the measured value to be in a certain range
+            if(expected - error <= resistor <= expected + error){
+            //if(resistor == rValues[count]){
+                // Set the next state to EXIT
                 current_state = EXIT;
-                //SET LATB to 0000 0001 so we can shift bits later on.
+                // Reset the amount of times Nightrider has played
                 nCount = 0;
+                // Just so I can see all the values in the array
                 count += 1;
+                //SET LATB to 0000 0001 so we can shift bits later on.
                 LATB = 0x01;    
             }
             
@@ -151,8 +157,5 @@ void fsm_game(void) {
 
 }
 
-void isInBoundary(unsigned int value){
-    
-}
 
 
