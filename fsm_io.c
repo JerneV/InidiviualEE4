@@ -31,7 +31,7 @@ static enum {FSM_SETIO,
  ********************************************************************/
 void fsm_io_init(void) {
 	current_state = FSM_SETIO;
-    startADC();
+    ADC_init();
 }
 
 /********************************************************************
@@ -43,10 +43,10 @@ void fsm_io_init(void) {
  *                  and off once you pushed a button.          
  ********************************************************************/
 void fsm_io(void) {
-    
     switch (current_state) {                
         case FSM_SETIO :
         // *** inputs ***
+            
 
         // *** outputs ***
             servo_counter++;
