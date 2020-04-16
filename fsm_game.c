@@ -35,14 +35,16 @@ unsigned char nCount = 0;
 
 // Varuables used for logic
 unsigned int resistor;
-unsigned char count = 0;
+unsigned char currentResistor = 0;
 
 
-// Boolean! For nightrider 
+// Booleans
 unsigned char isUp = 1;
+unsigned char correctValue = 0;
 
-//unsigned int rValues[8] = {0x7A, 0xC0, 0x83,0xE8, 0xFA, 0xFE, 0xE5, 0xEB};
-unsigned int rValues[8] = {0x5E, 0x03, 0xC1, 0x17, 0x5F, 0x7F, 0xAF, 0xD7};
+// These values are used for the display of the resistors we expect.
+unsigned int rValues[8] = {23,128,176,197,215,223,232,245};
+
 
 /********************************************************************
  * Function:        void fsm_game_init(void)
@@ -74,35 +76,70 @@ void fsm_game(void) {
 
             if (PRG_BUTTON == PUSHED) {
                 current_state = SHOW;
+                correctValue = 0;
                 timer = 0;
             }
 
             break;
 
         case(SHOW):
-            // For now: just show the first value in the array
-            LATB = rValues[count];
-            
-            // Read the next value of the ADC
+            // Loop through all the values in the rValues array.
+           LATB = rValues[currentResistor];
+        
+            // Read the value of the ADC
             resistor = ADC_value[0];
+            // Start ADC for the next Value
             startADC();
+                          
+            if(88 >= resistor && resistor <= 97 && currentResistor == 0){
+                // 1k
+                correctValue = TRUE;
+                
+            }else if(486 >= resistor && resistor <= 537 && currentResistor == 1){
+                //10k
+                correctValue = TRUE;
+                
+            }else if(668 >= resistor && resistor <= 739 && currentResistor == 2){
+                //22k
+                correctValue = TRUE;
+                
+            }else if(746 >= resistor && resistor <= 825 && currentResistor == 3){
+                //33k
+                correctValue = TRUE;
+                
+            }else if(802 >= resistor && resistor <= 886 && currentResistor == 4){
+                //47k
+                correctValue = TRUE;
+                
+            }else if(848 >= resistor && resistor <= 937 && currentResistor == 5){
+                //68k
+                correctValue = TRUE;
+                
+            }else if(884 >= resistor && resistor <= 977 && currentResistor == 6){
+                //100k
+                correctValue = TRUE;
+                
+            }else if(930 >= resistor && resistor <= 1024 && currentResistor == 7){
+                //220k
+                correctValue = TRUE;
+            }
             
-            unsigned int error = floor(resistor * 0.10);
-            unsigned int expected = rValues[count];
-            
-            // we want the measured value to be in a certain range
-            if(expected - error <= resistor <= expected + error){
-            //if(resistor == rValues[count]){
+            if(correctValue){
                 // Set the next state to EXIT
                 current_state = EXIT;
                 // Reset the amount of times Nightrider has played
                 nCount = 0;
-                // Just so I can see all the values in the array
-                count += 1;
-                //SET LATB to 0000 0001 so we can shift bits later on.
-                LATB = 0x01;    
+                // Go to the next value in the array, this will go out of array boundaries (if it works)
+                if(currentResistor <= 7){
+                    currentResistor += 1;
+                }else{
+                    currentResistor = 0;
+                }
+                //SET LATB to 0000 0001 so we can shift bits later on for the nightrider sequence.
+                LATB = 0x01;  
             }
-            
+                
+
             break;
 
         case(EXIT):
