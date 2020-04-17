@@ -76,7 +76,6 @@ void fsm_game(void) {
 
             if (PRG_BUTTON == PUSHED) {
                 current_state = SHOW;
-                correctValue = 0;
                 timer = 0;
             }
 
@@ -85,13 +84,16 @@ void fsm_game(void) {
         case(SHOW):
             // Loop through all the values in the rValues array.
            LATB = rValues[currentResistor];
+           correctValue = FALSE;
         
             // Read the value of the ADC
             resistor = ADC_value[0];
             // Start ADC for the next Value
             startADC();
-                          
-            if(88 >= resistor && resistor <= 97 && currentResistor == 0){
+            
+            // Current resistor will be randomly chosen! For now we just count up through themm all.
+            
+            if(88 >= ( resistor >> 2) && (resistor >> 2) <= 97 && currentResistor == 0){
                 // 1k
                 correctValue = TRUE;
                 
@@ -124,12 +126,11 @@ void fsm_game(void) {
                 correctValue = TRUE;
             }
             
-            if(correctValue){
+            if(correctValue == TRUE){
                 // Set the next state to EXIT
                 current_state = EXIT;
-                // Reset the amount of times Nightrider has played
-                nCount = 0;
                 // Go to the next value in the array, this will go out of array boundaries (if it works)
+                // TEMPORARY - CURRENT RESISTOR WILL BE CHOSESN RANDOMLY.
                 if(currentResistor <= 7){
                     currentResistor += 1;
                 }else{
@@ -178,7 +179,8 @@ void fsm_game(void) {
                 }
             }
             
-            if(nCount == 4){
+            if(nCount >= 4){
+                nCount = 0;
                 current_state = IDLE;
             }
 
