@@ -69,7 +69,7 @@ static void init(void) {
     
 	// Configure I/O as input (1) or output (0)
     TRISAbits.TRISA0 = 1;       // RA0 first analog input or digital IO
-    ANSELAbits.ANSA0 = 0;       // When input, set RA0 as analog or digital
+    ANSELAbits.ANSA0 = 1;       // When input, set RA0 as analog or digital
     TRISAbits.TRISA1 = 0;       // RA1 second analog input or digital IO
     ANSELAbits.ANSA1 = 0;       // When input, set RA1 as analog or digital
     TRISAbits.TRISA2 = 0;       // RA2 third analog input or digital IO
