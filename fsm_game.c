@@ -40,7 +40,7 @@ unsigned char currentResistor = 0;
 
 // Booleans
 unsigned char isUp = 1;
-unsigned char correctValue = 0;
+unsigned char correctValue = FALSE;
 
 // These values are used for the display of the resistors we expect.
 unsigned int rValues[8] = {23,128,176,197,215,223,232,245};
@@ -76,6 +76,8 @@ void fsm_game(void) {
 
             if (PRG_BUTTON == PUSHED) {
                 current_state = SHOW;
+                correctValue = FALSE;
+
                 timer = 0;
             }
 
@@ -83,45 +85,44 @@ void fsm_game(void) {
 
         case(SHOW):
             // Loop through all the values in the rValues array.
-           LATB = rValues[currentResistor];
-           correctValue = FALSE;
+            LATB = rValues[currentResistor];
         
             // Read the value of the ADC
             resistor = ADC_value[0];
             // Start ADC for the next Value
             startADC();
             
-            // Current resistor will be randomly chosen! For now we just count up through themm all.
+            // Current resistor will be randomly chosen! For now we just count up through them all.
             
-            if(88 >= ( resistor >> 2) && (resistor >> 2) <= 97 && currentResistor == 0){
+            if(88 >= ( resistor >> 2) && (resistor >> 2) <= 97 && currentResistor == 0  && PRG_BUTTON == PUSHED){
                 // 1k
                 correctValue = TRUE;
                 
-            }else if(486 >= resistor && resistor <= 537 && currentResistor == 1){
+            }else if(486 >= resistor && resistor <= 537 && currentResistor == 1 && PRG_BUTTON == PUSHED){
                 //10k
                 correctValue = TRUE;
                 
-            }else if(668 >= resistor && resistor <= 739 && currentResistor == 2){
+            }else if(668 >= resistor && resistor <= 739 && currentResistor == 2 && PRG_BUTTON == PUSHED){
                 //22k
                 correctValue = TRUE;
                 
-            }else if(746 >= resistor && resistor <= 825 && currentResistor == 3){
+            }else if(746 >= resistor && resistor <= 825 && currentResistor == 3 && PRG_BUTTON == PUSHED){
                 //33k
                 correctValue = TRUE;
                 
-            }else if(802 >= resistor && resistor <= 886 && currentResistor == 4){
+            }else if(825 >= resistor >> 2 && resistor >> 2 <= 886 && currentResistor == 4 && PRG_BUTTON == PUSHED){
                 //47k
                 correctValue = TRUE;
                 
-            }else if(848 >= resistor && resistor <= 937 && currentResistor == 5){
+            }else if(886 >= resistor >> 2 && resistor >> 2 <= 937 && currentResistor == 5 && PRG_BUTTON == PUSHED){
                 //68k
                 correctValue = TRUE;
                 
-            }else if(884 >= resistor && resistor <= 977 && currentResistor == 6){
+            }else if(937 >= resistor >> 2 && resistor >> 2 <= 977 && currentResistor == 6 && PRG_BUTTON == PUSHED){
                 //100k
                 correctValue = TRUE;
                 
-            }else if(930 >= resistor && resistor <= 1024 && currentResistor == 7){
+            }else if(980 >= (resistor >> 2) && (resistor >> 2) <= 1000 && currentResistor == 7 && PRG_BUTTON == PUSHED){
                 //220k
                 correctValue = TRUE;
             }
@@ -129,6 +130,7 @@ void fsm_game(void) {
             if(correctValue == TRUE){
                 // Set the next state to EXIT
                 current_state = EXIT;
+                correctValue = FALSE;
                 // Go to the next value in the array, this will go out of array boundaries (if it works)
                 // TEMPORARY - CURRENT RESISTOR WILL BE CHOSESN RANDOMLY.
                 if(currentResistor <= 7){
