@@ -1,12 +1,14 @@
 /*********************************************************************
  *
- *                  EE 4 Project - Code Template
+ *                  EE 4 Project
  *
  *********************************************************************
  * Processor:       PIC18F25K50
  * Compiler:        XC8 1.35+
- * Author:          Jeroen Van Aken
- * Updated:         03/03/2020
+ * Author:          Jerne Vingerhoets
+ * Updated:         21/04/2020
+ * With thanks to Daan Witters for showing me the EXPECTED_VALUES array and why
+ * my solution firstly didn't work.
  ********************************************************************/
 /** I N C L U D E S *************************************************/
 #include "config.h"
@@ -32,10 +34,12 @@ unsigned char downCount = 0;
 unsigned int upTimer = 0;
 unsigned int downTimer = 0;
 unsigned char nCount = 0;
+unsigned char error = 15;
 
 // Varuables used for logic
 unsigned int resistor;
 unsigned char currentResistor = 0;
+unsigned int randomCounter = 0;
 
 
 // Booleans
@@ -43,8 +47,9 @@ unsigned char isUp = 1;
 unsigned char correctValue = FALSE;
 
 // These values are used for the display of the resistors we expect.
-unsigned int rValues[8] = {23,128,176,197,215,223,232,245};
-
+static unsigned int LED_RES[8] = {1,10,22,33,47,68,100,220};
+// the expected values for the ADC
+static unsigned int EXPECTED_VALUES[8] = {93,512,704,786,844,893,930,980};
 
 /********************************************************************
  * Function:        void fsm_game_init(void)
@@ -62,6 +67,7 @@ void fsm_game_init(void) {
 void fsm_game(void) {
     switch (current_state) {
         case(IDLE):
+            randomCounter += 1;
             //blink odd even
             if (timer <= 500) {
                 timer += 1;
@@ -76,73 +82,29 @@ void fsm_game(void) {
 
             if (PRG_BUTTON == PUSHED) {
                 current_state = SHOW;
-                correctValue = FALSE;
-
                 timer = 0;
             }
 
             break;
 
         case(SHOW):
-            // Loop through all the values in the rValues array.
-            LATB = rValues[currentResistor];
-        
-            // Read the value of the ADC
-            resistor = ADC_value[0];
-            // Start ADC for the next Value
+            //First we set a seed for the random generator. Otherwise we will see the same values
+            srand(randomCounter); 
+            // Get a new random value
+            int r = rand(); 
+            // Make LATB show the resistor value we expect in binary
+            LATB = LED_RES[r%8];
+            // take a random value from our expected values
+            int ADC_EXPECTED = EXPECTED_VALUES[r%8];
+            // Start ADC for the next value
             startADC();
-            
-            // Current resistor will be randomly chosen! For now we just count up through them all.
-            
-            if(88 >= ( resistor >> 2) && (resistor >> 2) <= 97 && currentResistor == 0  && PRG_BUTTON == PUSHED){
-                // 1k
-                correctValue = TRUE;
-                
-            }else if(486 >= resistor && resistor <= 537 && currentResistor == 1 && PRG_BUTTON == PUSHED){
-                //10k
-                correctValue = TRUE;
-                
-            }else if(668 >= resistor && resistor <= 739 && currentResistor == 2 && PRG_BUTTON == PUSHED){
-                //22k
-                correctValue = TRUE;
-                
-            }else if(746 >= resistor && resistor <= 825 && currentResistor == 3 && PRG_BUTTON == PUSHED){
-                //33k
-                correctValue = TRUE;
-                
-            }else if(825 >= resistor >> 2 && resistor >> 2 <= 886 && currentResistor == 4 && PRG_BUTTON == PUSHED){
-                //47k
-                correctValue = TRUE;
-                
-            }else if(886 >= resistor >> 2 && resistor >> 2 <= 937 && currentResistor == 5 && PRG_BUTTON == PUSHED){
-                //68k
-                correctValue = TRUE;
-                
-            }else if(937 >= resistor >> 2 && resistor >> 2 <= 977 && currentResistor == 6 && PRG_BUTTON == PUSHED){
-                //100k
-                correctValue = TRUE;
-                
-            }else if(980 >= (resistor >> 2) && (resistor >> 2) <= 1000 && currentResistor == 7 && PRG_BUTTON == PUSHED){
-                //220k
-                correctValue = TRUE;
-            }
-            
-            if(correctValue == TRUE){
-                // Set the next state to EXIT
+            // To adjust for possible misreads take in account a certain error value
+            if((ADC_value[0] > (ADC_EXPECTED - error) )&&( ADC_value[0] < (ADC_EXPECTED + error) )){
+                // Prepare for nightrider
+                LATB = 0x01;
+                // Go to nighrider
                 current_state = EXIT;
-                correctValue = FALSE;
-                // Go to the next value in the array, this will go out of array boundaries (if it works)
-                // TEMPORARY - CURRENT RESISTOR WILL BE CHOSESN RANDOMLY.
-                if(currentResistor <= 7){
-                    currentResistor += 1;
-                }else{
-                    currentResistor = 0;
-                }
-                //SET LATB to 0000 0001 so we can shift bits later on for the nightrider sequence.
-                LATB = 0x01;  
             }
-                
-
             break;
 
         case(EXIT):
